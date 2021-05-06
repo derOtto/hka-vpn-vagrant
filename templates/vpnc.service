@@ -1,0 +1,11 @@
+[Unit]
+Description=VPNC connection to HKA
+Wants=network-online.target
+After=network.target network-online.target
+
+[Service]
+Type=forking
+ExecStart=/usr/sbin/vpnc /etc/vpnc/hka.conf
+
+[Install]
+WantedBy=multi-user.target

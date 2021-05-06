@@ -1,0 +1,61 @@
+---
+- name: Setup HKA VPN.
+  hosts: all
+
+  vars_files:
+    - hka-credentials.yml
+
+  handlers:
+    - include: handlers/main.yml
+
+  pre_tasks:
+    - name: Populate service facts
+      service_facts:
+    - name: Stop vpnc connection.
+      become: True
+      systemd:
+        name: vpnc
+        state: stopped
+      when: "'vpnc' in services"
+
+  roles:
+    - role: gantsign.keyboard
+      keyboard_model: pc105
+      keyboard_layout: de
+
+  tasks:
+    - name: Set timezone to Europe/Berlin.
+      become: True
+      timezone:
+        name: Europe/Berlin
+
+    - name: Update System
+      become: True
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install some packages
+      become: True
+      apt:
+        pkg:
+        - vpnc
+        state: present
+
+    - name: Create vpnc conf file (with credentials).
+      template: src=hka.vpnc.j2 dest=/etc/vpnc/hka.conf mode=600
+      become: True
+
+    - name: Create vpnc service.
+      template: src=vpnc.service dest=/etc/systemd/system/vpnc.service mode=644
+      become: True
+      changed_when: True # TODO: change!
+      notify:
+        - Run vpnc connection
+
+  post_tasks:
+    - name: Start vpnc connection.
+      become: True
+      systemd:
+        name: vpnc
+        state: started

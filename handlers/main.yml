@@ -1,0 +1,12 @@
+- name: Reload daemon
+  become: True
+  listen: Run vpnc connection
+  systemd:
+    daemon_reload: yes
+- name: Enable and start vpnc service
+  become: True
+  listen: Run vpnc connection
+  systemd:
+    name: vpnc
+    state: started
+    enabled: yes
